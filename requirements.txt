@@ -4,3 +4,13 @@ gunicorn
 
 pydantic>=1.8.0
 loguru>=0.5.3
+dotenv
+
+sqlalchemy>=2.0.44
+psycopg2-binary
+alembic
+
+PyYAML
+
+#Formatter
+ruff
