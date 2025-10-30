@@ -21,7 +21,7 @@ def read_yaml_file(file_name: str) -> dict[str, Any]:
         PermissionError: If there are insufficient permissions to read the file
     """
     try:
-        path = Path("./config/" + file_name)
+        path = Path("./config/")/file_name
 
         # Check if file exists
         if not path.exists():

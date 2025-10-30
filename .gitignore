@@ -10,5 +10,9 @@ wheels/
 .env
 .env.*
 
+src/log/app.log
+
 # Virtual environments
 .venv
+
+alembic/versions/*

@@ -4,19 +4,16 @@ from pathlib import Path
 from loguru import logger
 
 
-
 def  setup_logger():
-    # Rimuove il logger di default
     logger.remove()
 
-    # Crea la directory dei log se non esiste
-    log_directory = Path("./logs")
+
+    log_directory = Path("src/log")
     if not log_directory.exists():
         Path.mkdir(log_directory)
 
-    # Configura il logger per scrivere su file con rotazione
     logger.add(
-        log_directory / "./app.log",
+        log_directory / "app.log",
         rotation="10 MB",  # Ruota il file quando raggiunge 10MB
         retention="1 week",  # Mantiene i log per una settimana
         compression="zip",  # Comprime i file di log ruotati

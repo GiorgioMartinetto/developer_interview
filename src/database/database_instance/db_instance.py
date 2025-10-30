@@ -14,5 +14,4 @@ class DatabaseSession:
         return cls._instance
 
 
-# istanza globale accessibile ovunque
 db_session = DatabaseSession()

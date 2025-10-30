@@ -1,12 +1,13 @@
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from src.api.v1.product_endpoint import router
 from src.log.logger import setup_logger
+from src.models.response_models import HealthResponse
 
 
 @asynccontextmanager
@@ -18,8 +19,8 @@ async def lifespan(app: FastAPI):
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="My Projects API",
-    description="A FastAPI-based API for managing projects",
+    title="SGR Products APP",
+    description="Application to manage products",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -35,10 +36,13 @@ app.add_middleware(
 
 app.include_router(router=router)
 
-# Root endpoint
-@app.get("/")
-async def root():
-    return {"message": "Welcome to My Projects API"}
+@app.get("/health_check/",
+         status_code=status.HTTP_200_OK,
+         response_model=HealthResponse)
+def health_check():
+    return HealthResponse(
+        message="The server is up and running"
+    )
 
 
 def main():
