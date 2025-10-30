@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
-from src.log.logger import setup_logger
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-from src.api.v1.users_endpoint import router
+
+from src.api.v1.product_endpoint import router
+from src.log.logger import setup_logger
 
 
 @asynccontextmanager
@@ -19,6 +21,7 @@ app = FastAPI(
     title="My Projects API",
     description="A FastAPI-based API for managing projects",
     version="1.0.0",
+    lifespan=lifespan
 )
 
 # Enable CORS
