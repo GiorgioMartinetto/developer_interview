@@ -1,11 +1,8 @@
-from itertools import product
 
-from sqlalchemy import Table, Column, DateTime, Integer, String, ForeignKey
-from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from src.entities.base import Base
-
 
 product_tags = Table(
     "product_tags",

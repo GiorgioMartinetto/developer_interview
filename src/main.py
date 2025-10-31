@@ -5,7 +5,8 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
-from src.api.v1.product_endpoint import router
+from src.api.v1.cetegory_endpoints import category_router
+from src.api.v1.product_endpoint import product_router
 from src.log.logger import setup_logger
 from src.models.response_models import HealthResponse
 
@@ -34,7 +35,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router=router)
+app.include_router(router=product_router)
+app.include_router(router=category_router)
 
 @app.get("/health_check/",
          status_code=status.HTTP_200_OK,

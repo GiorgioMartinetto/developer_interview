@@ -52,3 +52,29 @@ def create_product(product: CreateProductRequest):
         db_session.rollback()
         logger.exception(f"Error creating product: {e}")
         raise RuntimeError("Failed to create product") from e
+
+
+def update_product(product: dict):
+    try:
+        product_instance = db_session.query(Product).filter(Product.id == product.get("id")).first()
+        logger.info(product_instance)
+        logger.info(product)
+        if not product_instance:
+            raise ValueError("Product not found")
+
+        for key, value in product.items():
+            if key.lower() == "id":
+                continue
+
+            if value is not None and hasattr(product_instance, key):
+                setattr(product_instance, key, value)
+
+        db_session.commit()
+        db_session.refresh(product_instance)
+        logger.success("Product updated successfully")
+
+    except Exception as e:
+        db_session.rollback()
+        logger.exception(f"Error updating product: {e}")
+        raise RuntimeError("Failed to update product") from e
+

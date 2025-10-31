@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -8,3 +10,4 @@ class HealthResponse(BaseModel):
 class HTTPResponse(BaseModel):
     status: int
     message: str
+    data: Any | None = None
