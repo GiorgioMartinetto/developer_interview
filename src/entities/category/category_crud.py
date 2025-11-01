@@ -1,7 +1,7 @@
 from loguru import logger
 
 from src.database.database_instance.db_instance import db_session
-from src.entities.category_entity import Category
+from src.entities.category.category_entity import Category
 from src.models.request_models import CreateCategoryRequest
 
 

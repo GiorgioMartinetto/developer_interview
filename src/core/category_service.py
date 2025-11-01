@@ -1,6 +1,5 @@
 
-
-from src.entities.category_crud import create_category, get_categories_list
+from src.entities.category.category_crud import create_category, get_categories_list
 from src.models.request_models import CreateCategoryRequest
 
 

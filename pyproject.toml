@@ -9,6 +9,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "fastapi>=0.68.0",
     "gunicorn>=23.0.0",
+    "jsonb>=1.0.0",
     "loguru>=0.5.3",
     "psycopg2-binary>=2.9.11",
     "pydantic>=1.8.0",

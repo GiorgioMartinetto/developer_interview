@@ -1,5 +1,5 @@
 
-from src.entities.product_crud import create_product, update_product
+from src.entities.product.product_crud import create_product, update_product
 from src.models.request_models import CreateProductRequest, UpdateProductRequest
 
 

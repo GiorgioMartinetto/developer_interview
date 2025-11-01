@@ -4,8 +4,9 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from src.entities.base import Base
-from src.entities.product_entity import Product
-from src.entities.category_entity import Category
+from src.entities.product.product_entity import Product
+from src.entities.category.category_entity import Category
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

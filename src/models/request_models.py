@@ -5,7 +5,7 @@ class CreateProductRequest(BaseModel):
     name: str
     price: float
     category_id: int
-    tags: list[str]
+    tags: list[str] | None
     description: str
 
 
@@ -16,6 +16,7 @@ class UpdateProductRequest(BaseModel):
     category_id: int | None
     tags: list[str] | None
     description: str | None
+
 
 
 class CreateCategoryRequest(BaseModel):
