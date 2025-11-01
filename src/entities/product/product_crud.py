@@ -55,7 +55,19 @@ def update_product(product: dict):
             if key.lower() == "id":
                 continue
 
-            if value is not None and hasattr(product_instance, key):
+            if key == "categories_name" and value is not None:
+                product_categories = []
+                for category_name in value:
+                    category = (
+                        db_session.query(Category)
+                        .filter(Category.name.ilike(category_name))
+                        .first()
+                    )
+                    if not category:
+                        raise ValueError(f"Category '{category_name}' not found")
+                    product_categories.append(category)
+                product_instance.category_id = product_categories
+            elif value is not None and hasattr(product_instance, key):
                 setattr(product_instance, key, value)
 
         db_session.commit()
@@ -66,7 +78,6 @@ def update_product(product: dict):
         db_session.rollback()
         logger.exception(f"Error updating product: {e}")
         raise RuntimeError("Failed to update product") from e
-
 
 def delete_product(product: DeleteProductRequest):
     try:
