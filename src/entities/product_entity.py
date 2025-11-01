@@ -3,9 +3,10 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from src.entities.base import Base
+from src.entities.category_entity import product_category
 
 product_tags = Table(
-    "product_tags",
+    "ProductTags",
     Base.metadata,
     Column("product_id", Integer, ForeignKey("Products.id")),
     Column("tag_id", Integer, ForeignKey("Tags.id")),
@@ -37,7 +38,7 @@ class Product(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     price = Column(Integer, index=True)
-    category_id = Column(Integer, index=True)
-    tags = relationship(Tags,secondary=product_tags, back_populates="products")
     created_at = Column(String, index=True)
     description = Column(String, index=True)
+    tags = relationship(Tags,secondary=product_tags, back_populates="products")
+    category_id = relationship("Category", secondary=product_category, back_populates="products")

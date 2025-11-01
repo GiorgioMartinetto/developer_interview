@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status
-from loguru import logger
+
 from src.core.category_service import (
     create_category_service,
     get_categories_list_service,

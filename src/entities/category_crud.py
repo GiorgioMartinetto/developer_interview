@@ -19,10 +19,10 @@ def create_category(category: CreateCategoryRequest):
         logger.exception(f"Error creating category: {e}")
         raise RuntimeError("Failed to create category") from e
 
-def get_categories_list() -> list[str]:
+def get_categories_list() -> list[dict]:
     try:
         categories = db_session.query(Category).all()
-        return [category.name for category in categories]
+        return [{"id": category.id, "name":category.name} for category in categories]
     except Exception as e:
         logger.exception(f"Error getting categories list: {e}")
         raise RuntimeError("Failed to get categories list") from e
