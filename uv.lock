@@ -139,12 +139,6 @@ wheels = [
 ]
 
 [[package]]
-name = "jsonb"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fc/79/d0645f15b66c484be04fda37744b3138abef958c8971182786639b30f17a/jsonb-1.0.0.tar.gz", hash = "sha256:4d985d9110be141c11853d1719f68f6433f78aaaedc78a1daf939c7cf4b2dd0c", size = 3437, upload-time = "2023-03-17T23:44:09.903Z" }
-
-[[package]]
 name = "loguru"
 version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
@@ -230,7 +224,6 @@ dependencies = [
     { name = "dotenv" },
     { name = "fastapi" },
     { name = "gunicorn" },
-    { name = "jsonb" },
     { name = "loguru" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
@@ -246,7 +239,6 @@ requires-dist = [
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fastapi", specifier = ">=0.68.0" },
     { name = "gunicorn", specifier = ">=23.0.0" },
-    { name = "jsonb", specifier = ">=1.0.0" },
     { name = "loguru", specifier = ">=0.5.3" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
     { name = "pydantic", specifier = ">=1.8.0" },

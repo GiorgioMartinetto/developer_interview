@@ -1,7 +1,15 @@
 from fastapi import APIRouter, status
 
-from src.core.product_service import create_product_service, update_product_service
-from src.models.request_models import CreateProductRequest, UpdateProductRequest
+from src.core.product_service import (
+    create_product_service,
+    delete_product_service,
+    update_product_service,
+)
+from src.models.request_models import (
+    CreateProductRequest,
+    DeleteProductRequest,
+    UpdateProductRequest,
+)
 from src.models.response_models import HTTPResponse
 
 product_router = APIRouter(
@@ -32,7 +40,8 @@ def get_product():
 @product_router.put("/update_product/",
                     status_code= status.HTTP_200_OK,
                     description="Update a product by id")
-def update_product(product: UpdateProductRequest):
+def update_product(product: UpdateProductRequest) -> HTTPResponse:
+    #TODO: Controllare che l'update funzioni correttamente per la parte dei tags
     try:
         result = update_product_service(product)
         return HTTPResponse(
@@ -45,9 +54,21 @@ def update_product(product: UpdateProductRequest):
             message=str(e)
         )
 
-@product_router.delete("/delete_product/", description="Delete a product by id")
-def delete_product():
-    pass
+@product_router.delete("/delete_product/",
+                       status_code=status.HTTP_200_OK,
+                       description="Delete a product by id")
+def delete_product(product: DeleteProductRequest):
+    try:
+        result = delete_product_service(product)
+        return HTTPResponse(
+            status=status.HTTP_200_OK,
+            message=result.get("message")
+        )
+    except ValueError as e:
+        return HTTPResponse(
+            status=status.HTTP_400_BAD_REQUEST,
+            message=str(e)
+        )
 
 @product_router.get("/filtered_products/", description="Get filtered products")
 def filtered_products():

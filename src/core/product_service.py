@@ -1,15 +1,21 @@
 
-from src.entities.product.product_crud import create_product, update_product
-from src.models.request_models import CreateProductRequest, UpdateProductRequest
+from src.entities.product.product_crud import (
+    create_product,
+    delete_product,
+    update_product,
+)
+from src.models.request_models import (
+    CreateProductRequest,
+    DeleteProductRequest,
+    UpdateProductRequest,
+)
 
 
 def create_product_service(product: CreateProductRequest) -> dict:
     if product.price < 0:
         raise ValueError("Price cannot be negative")
-
     try:
         create_product(product)
-
         return {"message": "Product created successfully"}
     except Exception as e:
         raise ValueError(str(e)) from e
@@ -23,5 +29,13 @@ def update_product_service(product: UpdateProductRequest) -> dict:
     try:
         update_product(product_dict)
         return {"message": "Product updated successfully"}
+    except Exception as e:
+        raise ValueError(str(e)) from e
+
+
+def delete_product_service(product_id: DeleteProductRequest):
+    try:
+        delete_product(product_id)
+        return {"message": "Product deleted successfully"}
     except Exception as e:
         raise ValueError(str(e)) from e

@@ -15,4 +15,4 @@ class Category(Base):
     __tablename__ = "Categories"
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
-    products = relationship("Product", secondary=product_category, back_populates="categories")
+    product_id = relationship("Product", secondary=product_category, back_populates="category_id")

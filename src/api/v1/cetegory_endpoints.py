@@ -3,8 +3,9 @@ from fastapi import APIRouter, status
 from src.core.category_service import (
     create_category_service,
     get_categories_list_service,
+    delete_category_service,
 )
-from src.models.request_models import CreateCategoryRequest
+from src.models.request_models import CreateCategoryRequest, DeleteCategoryRequest
 from src.models.response_models import HTTPResponse
 
 category_router = APIRouter(
@@ -40,6 +41,22 @@ def get_categories_list() -> HTTPResponse:
             status=status.HTTP_200_OK,
             message=result.get("message"),
             data=result.get("data", None)
+        )
+    except ValueError as e:
+        return HTTPResponse(
+            status=status.HTTP_400_BAD_REQUEST,
+            message=str(e)
+        )
+
+@category_router.delete("/delete_category/",
+                        status_code=status.HTTP_200_OK,
+                        description="Delete a category by id")
+def delete_category(category_id: DeleteCategoryRequest):
+    try:
+        result = delete_category_service(category_id)
+        return HTTPResponse(
+            status=status.HTTP_200_OK,
+            message=result.get("message")
         )
     except ValueError as e:
         return HTTPResponse(
