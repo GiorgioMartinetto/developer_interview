@@ -2,8 +2,8 @@ from fastapi import APIRouter, status
 
 from src.core.category_service import (
     create_category_service,
-    get_categories_list_service,
     delete_category_service,
+    get_categories_list_service,
 )
 from src.models.request_models import CreateCategoryRequest, DeleteCategoryRequest
 from src.models.response_models import HTTPResponse

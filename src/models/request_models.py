@@ -8,7 +8,6 @@ class CreateProductRequest(BaseModel):
     tags: list[str] | None
     description: str
 
-
 class UpdateProductRequest(BaseModel):
     id: int
     name: str | None
@@ -17,10 +16,12 @@ class UpdateProductRequest(BaseModel):
     tags: list[str] | None
     description: str | None
 
-
 class DeleteProductRequest(BaseModel):
     id: int
 
+
+class GetProductRequest(BaseModel):
+    id: int
 
 class CreateCategoryRequest(BaseModel):
     name: str

@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 from src.entities.base import Base
-from sqlalchemy.orm import relationship
-from src.entities.category.category_entity import Category, product_category
+from src.entities.category.category_entity import product_category
 
 
 class Product(Base):

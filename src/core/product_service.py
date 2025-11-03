@@ -2,11 +2,14 @@
 from src.entities.product.product_crud import (
     create_product,
     delete_product,
+    get_product_by_id,
+    get_products_list,
     update_product,
 )
 from src.models.request_models import (
     CreateProductRequest,
     DeleteProductRequest,
+    GetProductRequest,
     UpdateProductRequest,
 )
 
@@ -15,7 +18,7 @@ def create_product_service(product: CreateProductRequest) -> dict:
     if product.price < 0:
         raise ValueError("Price cannot be negative")
     try:
-        create_product(product)
+        create_product(product=product)
         return {"message": "Product created successfully"}
     except Exception as e:
         raise ValueError(str(e)) from e
@@ -27,15 +30,35 @@ def update_product_service(product: UpdateProductRequest) -> dict:
     if product_dict.get("price") and product_dict.get("price") < 0:
         raise ValueError("Price cannot be negative")
     try:
-        update_product(product_dict)
+        update_product(product=product_dict)
         return {"message": "Product updated successfully"}
     except Exception as e:
         raise ValueError(str(e)) from e
 
 
-def delete_product_service(product_id: DeleteProductRequest):
+def delete_product_service(product: DeleteProductRequest) -> dict:
     try:
-        delete_product(product_id)
+        delete_product(product=product)
         return {"message": "Product deleted successfully"}
+    except Exception as e:
+        raise ValueError(str(e)) from e
+
+
+def get_product_service(product: GetProductRequest) -> dict:
+    try:
+        product_instance = get_product_by_id(product=product)
+        if not product_instance:
+            raise ValueError("Product not found")
+        return {"message": "Product retrieved successfully", "data": product_instance}
+    except Exception as e:
+        raise ValueError(str(e)) from e
+
+def get_products_list_service() -> dict:
+    try:
+        products = get_products_list()
+        return {
+            "message": "Products list retrieved successfully",
+            "data": products
+        }
     except Exception as e:
         raise ValueError(str(e)) from e
