@@ -1,13 +1,15 @@
 from datetime import datetime
 
 from loguru import logger
-
+from thefuzz import fuzz
+from sqlalchemy import func
 from src.database.database_instance.db_instance import db_session
 from src.entities.category.category_entity import Category
 from src.entities.product.product_entity import Product
 from src.models.request_models import (
     CreateProductRequest,
     DeleteProductRequest,
+    GetFilteredProductsRequest,
     GetProductRequest,
 )
 
@@ -104,28 +106,86 @@ def get_product_by_id(product: GetProductRequest):
         logger.exception(f"Error getting product: {e}")
         raise RuntimeError("Failed to get product") from e
 
-def get_products_list():
+def get_products_list() -> list[dict]:
     try:
         products = db_session.query(Product).all()
-        products_dicts = []
-        for p in products:
-            if hasattr(p, "__table__"):
-                prod_dict = {col.name: getattr(p, col.name) for col in p.__table__.columns}
-            else:
-                prod_dict = {k: v for k, v in p.__dict__.items() if k != "_sa_instance_state"}
 
-            if hasattr(p, "category_id") and p.category_id is not None:
-                try:
-                    prod_dict["categories"] = [
-                        {col.name: getattr(c, col.name) for col in c.__table__.columns} for c in p.category_id
-                    ]
-                except Exception:
-                    prod_dict["categories"] = prod_dict.get("category_id")
-                prod_dict.pop("category_id", None)
-
-            products_dicts.append(prod_dict)
-
-        return products_dicts
+        return _convert_products_to_dict(products=products)
     except Exception as e:
         logger.exception(f"Error getting products list: {e}")
         raise RuntimeError("Failed to get products list") from e
+
+def get_filtered_products(product_filter: GetFilteredProductsRequest) -> list[dict]:
+    try:
+        query = db_session.query(Product)
+        if product_filter.category_filter:
+            query = query.filter(Product.category_id.any(Category.name.in_(product_filter.category_filter)))
+
+        if product_filter.min_max_price_filter:
+            if product_filter.min_max_price_filter == "min":
+                min_price = query.with_entities(func.min(Product.price)).scalar()
+                if min_price is not None:
+                    query = query.filter(Product.price == min_price)
+            else:
+                max_price = query.with_entities(func.max(Product.price)).scalar()
+                if max_price is not None:
+                    query = query.filter(Product.price == max_price)
+
+
+        if product_filter.sort_by:
+            field, direction = product_filter.sort_by
+            if field == "price":
+                if direction == "asc":
+                    query = query.order_by(Product.price.asc())
+                else:
+                    query = query.order_by(Product.price.desc())
+
+            elif field == "date":
+                if direction == "asc":
+                    query = query.order_by(Product.created_at.asc())
+                else:
+                    query = query.order_by(Product.created_at.desc())
+
+        results = query.all()
+
+        if product_filter.text_filter:
+            results = sorted(
+                results,
+                key=lambda prod: fuzz.partial_ratio(product_filter.text_filter.lower(), prod.name.lower()),
+                reverse=True
+            )
+            results = [r for r in results if fuzz.partial_ratio(product_filter.text_filter.lower(), r.name.lower()) > 60]
+
+        return _convert_products_to_dict(products=results)
+
+    except Exception as e:
+        logger.exception(f"Error getting filtered products: {e}")
+        raise RuntimeError("Failed to get filtered products") from e
+
+
+def _convert_products_to_dict(products: list[Product]) -> list[dict]:
+    if not products:
+        return []
+
+    products_dicts = []
+    for product in products:
+        if hasattr(product, "__table__"):
+            prod_dict = {col.name: getattr(product, col.name) for col in product.__table__.columns}
+        else:
+            prod_dict = {
+                k: v for k, v in product.__dict__.items() if k != "_sa_instance_state"
+            }
+
+        if hasattr(product, "category_id") and product.category_id is not None:
+            try:
+                prod_dict["categories"] = [
+                    {col.name: getattr(c, col.name) for col in c.__table__.columns}
+                    for c in product.category_id
+                ]
+            except Exception as _:
+                prod_dict["categories"] = prod_dict.get("category_id")
+            prod_dict.pop("category_id", None)
+
+        products_dicts.append(prod_dict)
+
+    return products_dicts

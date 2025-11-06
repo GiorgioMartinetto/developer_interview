@@ -15,6 +15,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "ruff[format]>=0.14.1",
     "sqlalchemy>=2.0.44",
+    "thefuzz>=0.22.1",
     "uvicorn>=0.15.0",
 ]
 

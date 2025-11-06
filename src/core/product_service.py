@@ -2,6 +2,7 @@
 from src.entities.product.product_crud import (
     create_product,
     delete_product,
+    get_filtered_products,
     get_product_by_id,
     get_products_list,
     update_product,
@@ -9,6 +10,7 @@ from src.entities.product.product_crud import (
 from src.models.request_models import (
     CreateProductRequest,
     DeleteProductRequest,
+    GetFilteredProductsRequest,
     GetProductRequest,
     UpdateProductRequest,
 )
@@ -56,6 +58,16 @@ def get_product_service(product: GetProductRequest) -> dict:
 def get_products_list_service() -> dict:
     try:
         products = get_products_list()
+        return {
+            "message": "Products list retrieved successfully",
+            "data": products
+        }
+    except Exception as e:
+        raise ValueError(str(e)) from e
+
+def get_filtered_products_service(product_filter: GetFilteredProductsRequest) -> dict:
+    try:
+        products = get_filtered_products(product_filter=product_filter)
         return {
             "message": "Products list retrieved successfully",
             "data": products

@@ -3,6 +3,7 @@ from fastapi import APIRouter, status
 from src.core.product_service import (
     create_product_service,
     delete_product_service,
+    get_filtered_products_service,
     get_product_service,
     get_products_list_service,
     update_product_service,
@@ -10,6 +11,7 @@ from src.core.product_service import (
 from src.models.request_models import (
     CreateProductRequest,
     DeleteProductRequest,
+    GetFilteredProductsRequest,
     GetProductRequest,
     UpdateProductRequest,
 )
@@ -38,24 +40,6 @@ def create_product(product: CreateProductRequest) -> HTTPResponse:
         )
 
 
-@product_router.get("/get_product_by_id/",
-                    status_code=status.HTTP_200_OK,
-                    description="Get a product by id")
-def get_product(product: GetProductRequest):
-    try:
-        result = get_product_service(product)
-        return HTTPResponse(
-            status=status.HTTP_200_OK,
-            message=result.get("message"),
-            data=result.get("data", None)
-        )
-    except ValueError as e:
-        return HTTPResponse(
-            status=status.HTTP_400_BAD_REQUEST,
-            message=str(e)
-        )
-
-
 @product_router.put("/update_product/",
                     status_code= status.HTTP_200_OK,
                     description="Update a product by id")
@@ -73,8 +57,6 @@ def update_product(product: UpdateProductRequest) -> HTTPResponse:
             message=str(e)
         )
 
-
-
 @product_router.delete("/delete_product/",
                        status_code=status.HTTP_200_OK,
                        description="Delete a product by id")
@@ -91,11 +73,22 @@ def delete_product(product: DeleteProductRequest):
             message=str(e)
         )
 
-
-@product_router.get("/filtered_products/", description="Get filtered products")
-def filtered_products():
-    pass
-
+@product_router.get("/get_product_by_id/",
+                    status_code=status.HTTP_200_OK,
+                    description="Get a product by id")
+def get_product(product: GetProductRequest):
+    try:
+        result = get_product_service(product)
+        return HTTPResponse(
+            status=status.HTTP_200_OK,
+            message=result.get("message"),
+            data=result.get("data", None)
+        )
+    except ValueError as e:
+        return HTTPResponse(
+            status=status.HTTP_400_BAD_REQUEST,
+            message=str(e)
+        )
 
 @product_router.get("/get_products_list/",
                     status_code=status.HTTP_200_OK,
@@ -103,6 +96,23 @@ def filtered_products():
 def get_products_list() -> HTTPResponse:
     try:
         result = get_products_list_service()
+        return HTTPResponse(
+            status=status.HTTP_200_OK,
+            message=result.get("message"),
+            data=result.get("data", None)
+        )
+    except ValueError as e:
+        return HTTPResponse(
+            status=status.HTTP_400_BAD_REQUEST,
+            message=str(e)
+        )
+
+@product_router.post("/get_filtered_products/",
+                    status_code=status.HTTP_200_OK,
+                    description="Get filtered products")
+def get_filtered_products(product_filter: GetFilteredProductsRequest) -> HTTPResponse:
+    try:
+        result = get_filtered_products_service(product_filter)
         return HTTPResponse(
             status=status.HTTP_200_OK,
             message=result.get("message"),

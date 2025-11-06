@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -22,6 +24,14 @@ class DeleteProductRequest(BaseModel):
 
 class GetProductRequest(BaseModel):
     id: int
+
+
+class GetFilteredProductsRequest(BaseModel):
+        text_filter: str | None
+        category_filter: list[str] | None
+        min_max_price_filter: Literal["min", "max"] | None
+        sort_by: tuple[Literal["price", "date"], Literal["asc", "desc"]] | None
+
 
 class CreateCategoryRequest(BaseModel):
     name: str
