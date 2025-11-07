@@ -68,8 +68,13 @@ def get_products_list_service() -> dict:
 def get_filtered_products_service(product_filter: GetFilteredProductsRequest) -> dict:
     try:
         products = get_filtered_products(product_filter=product_filter)
+        if not products:
+            return {
+                "message": "No products found",
+                "data": []
+            }
         return {
-            "message": "Products list retrieved successfully",
+            "message": "Filtered products list retrieved successfully",
             "data": products
         }
     except Exception as e:
