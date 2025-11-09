@@ -121,15 +121,28 @@ def get_filtered_products(product_filter: GetFilteredProductsRequest) -> list[di
         if product_filter.category_filter:
             query = query.filter(Product.category_id.any(Category.name.in_(product_filter.category_filter)))
 
+        # sostituire nel corpo di `get_filtered_products`
         if product_filter.min_max_price_filter:
-            if product_filter.min_max_price_filter == "min":
-                min_price = query.with_entities(func.min(Product.price)).scalar()
-                if min_price is not None:
-                    query = query.filter(Product.price == min_price)
-            else:
-                max_price = query.with_entities(func.max(Product.price)).scalar()
-                if max_price is not None:
-                    query = query.filter(Product.price == max_price)
+            try:
+                min_price, max_price = product_filter.min_max_price_filter
+            except Exception:
+                min_price, max_price = None, None
+
+            def _to_num(v):
+                try:
+                    return float(v) if v is not None else None
+                except Exception:
+                    return None
+
+            min_price = _to_num(min_price)
+            max_price = _to_num(max_price)
+
+            if min_price is not None and max_price is not None:
+                query = query.filter(Product.price >= min_price, Product.price <= max_price)
+            elif min_price is not None:
+                query = query.filter(Product.price >= min_price)
+            elif max_price is not None:
+                query = query.filter(Product.price <= max_price)
 
 
         if product_filter.sort_by:

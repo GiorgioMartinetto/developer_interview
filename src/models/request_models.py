@@ -29,7 +29,7 @@ class GetProductRequest(BaseModel):
 class GetFilteredProductsRequest(BaseModel):
         text_filter: str | None
         category_filter: list[str] | None
-        min_max_price_filter: Literal["min", "max"] | None
+        min_max_price_filter: tuple[float, float] | None
         sort_by: tuple[Literal["price", "date"], Literal["asc", "desc"]] | None
 
 

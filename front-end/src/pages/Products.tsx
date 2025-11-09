@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -10,16 +9,16 @@ import {
     MenuItem,
     Chip,
     Typography,
-    Pagination,
-    Card,
-    CardContent,
-    CardMedia,
     Button,
     CircularProgress,
     Paper,
     Divider,
+    Slider,
 } from '@mui/material';
 import MyNavbar from "../components/MyNavbar.tsx";
+import MyCard from "../components/MyCard.tsx";
+import AddProductCard from "../components/AddProductCard.tsx";
+import api from "../axios/axios.ts";
 
 interface Product {
     id: number;
@@ -28,7 +27,7 @@ interface Product {
     description: string;
     tags?: string[];
     created_at: string;
-    categories?: string[];
+    categories?: { id: number; name: string }[];
 }
 
 interface Category {
@@ -40,13 +39,11 @@ export default function Products() {
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
-    const [totalProducts, setTotalProducts] = useState(0);
-    const [page, setPage] = useState(1);
-    const [pageSize] = useState(12); // Products per page
 
     // Filter states
     const [searchText, setSearchText] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [priceRange, setPriceRange] = useState<number[]>([0, 2000]);
     const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'date_asc' | 'date_desc'>('date_desc');
 
     // Fetch categories on component mount
@@ -54,17 +51,16 @@ export default function Products() {
         fetchCategories();
     }, []);
 
-    // Fetch products when filters or page changes
+    // Fetch products when filters change
     useEffect(() => {
         fetchProducts();
-    }, [page, searchText, selectedCategories, sortBy]);
+    }, [searchText, selectedCategories, priceRange, sortBy]);
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://localhost:8000/v1/category/get_categories_list/');
-            const data = await response.json();
-            if (data.status === 200 && data.data) {
-                setCategories(data.data);
+            const response = await api.get('/v1/category/get_categories_list/');
+            if (response.data.status === 200 && response.data.data) {
+                setCategories(response.data.data);
             }
         } catch (error) {
             console.error('Error fetching categories:', error);
@@ -77,24 +73,15 @@ export default function Products() {
             const filterRequest = {
                 text_filter: searchText || null,
                 category_filter: selectedCategories.length > 0 ? selectedCategories : null,
-                min_max_price_filter: null,
+                min_max_price_filter: priceRange[0] !== 0 || priceRange[1] !== 2000 ? priceRange : null,
                 sort_by: sortBy.includes('price')
                     ? ['price', sortBy.split('_')[1] as 'asc' | 'desc']
                     : ['date', sortBy.split('_')[1] as 'asc' | 'desc']
             };
 
-            const response = await fetch('http://localhost:8000/v1/product/get_filtered_products/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(filterRequest),
-            });
-
-            const data = await response.json();
-            if (data.status === 200 && data.data) {
-                setProducts(data.data.slice((page - 1) * pageSize, page * pageSize));
-                setTotalProducts(data.data.length);
+            const response = await api.post('/v1/product/get_filtered_products/', filterRequest);
+            if (response.data.status === 200 && response.data.data) {
+                setProducts(response.data.data);
             }
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -103,24 +90,11 @@ export default function Products() {
         }
     };
 
-    const handleCategoryToggle = (categoryName: string) => {
-        setSelectedCategories(prev =>
-            prev.includes(categoryName)
-                ? prev.filter(c => c !== categoryName)
-                : [...prev, categoryName]
-        );
-        setPage(1); // Reset to first page when filters change
-    };
-
-    const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
-        setPage(value);
-    };
-
     const clearFilters = () => {
         setSearchText('');
         setSelectedCategories([]);
+        setPriceRange([0, 2000]);
         setSortBy('date_desc');
-        setPage(1);
     };
 
     return (
@@ -151,20 +125,56 @@ export default function Products() {
                             />
 
                             {/* Categories */}
-                            <Typography variant="subtitle1" gutterBottom>
-                                Categories
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-                                {categories.map((category) => (
-                                    <Chip
-                                        key={category.id}
-                                        label={category.name}
-                                        onClick={() => handleCategoryToggle(category.name)}
-                                        color={selectedCategories.includes(category.name) ? 'primary' : 'default'}
-                                        variant={selectedCategories.includes(category.name) ? 'filled' : 'outlined'}
-                                        sx={{ cursor: 'pointer' }}
-                                    />
-                                ))}
+                            <FormControl fullWidth sx={{ mb: 3 }}>
+                                <InputLabel>Categories</InputLabel>
+                                <Select
+                                    multiple
+                                    value={selectedCategories}
+                                    label="Categories"
+                                    onChange={(e) => setSelectedCategories(e.target.value as string[])}
+                                    renderValue={(selected) => (
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                            {(selected as string[]).map((value) => (
+                                                <Chip key={value} label={value} size="small" />
+                                            ))}
+                                        </Box>
+                                    )}
+                                >
+                                    {categories.map((category) => (
+                                        <MenuItem key={category.id} value={category.name}>
+                                            {category.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            {/* Price Range */}
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="body2" gutterBottom>
+                                    Price Range
+                                </Typography>
+                                <Slider
+                                    value={priceRange}
+                                    onChange={(_event, newValue) => setPriceRange(newValue as number[])}
+                                    valueLabelDisplay="auto"
+                                    min={0}
+                                    max={2000}
+                                    step={10}
+                                    marks={[
+                                        { value: 0, label: '€0' },
+                                        { value: 1000, label: '€1000' },
+                                        { value: 2000, label: '€2000' }
+                                    ]}
+                                    sx={{ mt: 2 }}
+                                />
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        €{priceRange[0]}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        €{priceRange[1]}
+                                    </Typography>
+                                </Box>
                             </Box>
 
                             {/* Sort By */}
@@ -187,7 +197,7 @@ export default function Products() {
                                 fullWidth
                                 variant="outlined"
                                 onClick={clearFilters}
-                                disabled={!searchText && selectedCategories.length === 0 && sortBy === 'date_desc'}
+                                disabled={!searchText && selectedCategories.length === 0 && priceRange[0] === 0 && priceRange[1] === 2000 && sortBy === 'date_desc'}
                             >
                                 Clear Filters
                             </Button>
@@ -203,7 +213,7 @@ export default function Products() {
                         ) : (
                             <>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    Showing {products.length} of {totalProducts} products
+                                    {products.length} product{products.length !== 1 ? 's' : ''} found
                                 </Typography>
 
                                 <Box sx={{
@@ -215,66 +225,17 @@ export default function Products() {
                                     },
                                     gap: 3
                                 }}>
+                                    <AddProductCard onProductAdded={fetchProducts} />
                                     {products.map((product) => (
-                                        <Card key={product.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                            <CardMedia
-                                                component="img"
-                                                height="200"
-                                                image="/src/assets/prodotti.jpg"
-                                                alt={product.name}
-                                                sx={{ objectFit: 'cover' }}
-                                            />
-                                            <CardContent sx={{ flexGrow: 1 }}>
-                                                <Typography gutterBottom variant="h6" component="h2">
-                                                    {product.name}
-                                                </Typography>
-                                                <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
-                                                    €{product.price}
-                                                </Typography>
-                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                                    {product.description.length > 100
-                                                        ? `${product.description.substring(0, 100)}...`
-                                                        : product.description
-                                                    }
-                                                </Typography>
-                                                {product.tags && product.tags.length > 0 && (
-                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-                                                        {product.tags.slice(0, 3).map((tag, index) => (
-                                                            <Chip
-                                                                key={index}
-                                                                label={tag}
-                                                                size="small"
-                                                                variant="outlined"
-                                                            />
-                                                        ))}
-                                                    </Box>
-                                                )}
-                                            </CardContent>
-                                        </Card>
+                                        <MyCard key={product.id} product={product} image="/src/assets/prodotti.jpg" />
                                     ))}
                                 </Box>
-
-                                {/* Pagination */}
-                                {totalProducts > pageSize && (
-                                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                                        <Pagination
-                                            count={Math.ceil(totalProducts / pageSize)}
-                                            page={page}
-                                            onChange={handlePageChange}
-                                            color="primary"
-                                            size="large"
-                                        />
-                                    </Box>
-                                )}
 
                                 {products.length === 0 && !loading && (
                                     <Box sx={{ textAlign: 'center', py: 8 }}>
                                         <Typography variant="h6" color="text.secondary">
                                             No products found matching your criteria.
                                         </Typography>
-                                        <Button variant="outlined" onClick={clearFilters} sx={{ mt: 2 }}>
-                                            Clear Filters
-                                        </Button>
                                     </Box>
                                 )}
                             </>
