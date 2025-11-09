@@ -4,6 +4,7 @@ from src.core.product_service import (
     create_product_service,
     delete_product_service,
     get_filtered_products_service,
+    get_number_of_product_service,
     get_product_service,
     get_products_list_service,
     update_product_service,
@@ -113,6 +114,23 @@ def get_products_list() -> HTTPResponse:
 def get_filtered_products(product_filter: GetFilteredProductsRequest) -> HTTPResponse:
     try:
         result = get_filtered_products_service(product_filter)
+        return HTTPResponse(
+            status=status.HTTP_200_OK,
+            message=result.get("message"),
+            data=result.get("data", None)
+        )
+    except ValueError as e:
+        return HTTPResponse(
+            status=status.HTTP_400_BAD_REQUEST,
+            message=str(e)
+        )
+
+@product_router.get("/get_number_of_product/",
+                    status_code=status.HTTP_200_OK,
+                    description="Get the number of products")
+def get_number_of_product() -> HTTPResponse:
+    try:
+        result = get_number_of_product_service()
         return HTTPResponse(
             status=status.HTTP_200_OK,
             message=result.get("message"),

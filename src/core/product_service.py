@@ -3,6 +3,7 @@ from src.entities.product.product_crud import (
     create_product,
     delete_product,
     get_filtered_products,
+    get_number_of_product,
     get_product_by_id,
     get_products_list,
     update_product,
@@ -76,6 +77,16 @@ def get_filtered_products_service(product_filter: GetFilteredProductsRequest) ->
         return {
             "message": "Filtered products list retrieved successfully",
             "data": products
+        }
+    except Exception as e:
+        raise ValueError(str(e)) from e
+
+def get_number_of_product_service() -> dict:
+    try:
+        number_of_products = get_number_of_product()
+        return {
+            "message": "Number of products retrieved successfully",
+            "data": number_of_products
         }
     except Exception as e:
         raise ValueError(str(e)) from e

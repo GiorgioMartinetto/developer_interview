@@ -16,3 +16,6 @@ src/log/app.log
 .venv
 
 alembic/versions/*
+*.txt
+
+node_modules

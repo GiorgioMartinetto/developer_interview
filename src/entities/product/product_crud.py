@@ -189,3 +189,11 @@ def _convert_products_to_dict(products: list[Product]) -> list[dict]:
         products_dicts.append(prod_dict)
 
     return products_dicts
+
+def get_number_of_product():
+    try:
+        number_of_products = db_session.query(Product).count()
+        return number_of_products
+    except Exception as e:
+        logger.exception(f"Error getting number of products: {e}")
+        raise RuntimeError("Failed to get number of products") from e
