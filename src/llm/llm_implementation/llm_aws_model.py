@@ -1,0 +1,3 @@
+
+class LLMAwsModel:
+    pass

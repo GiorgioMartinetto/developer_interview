@@ -2,7 +2,7 @@ from datetime import datetime
 
 from loguru import logger
 from thefuzz import fuzz
-from sqlalchemy import func
+
 from src.database.database_instance.db_instance import db_session
 from src.entities.category.category_entity import Category
 from src.entities.product.product_entity import Product

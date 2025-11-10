@@ -2,7 +2,7 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
-from src.utilis.sys_utilis import load_db_config
+from src.utilis.sys_utilis import load_env_config
 
 
 class DatabaseSetting(BaseModel):
@@ -21,5 +21,5 @@ class DatabaseSetting(BaseModel):
 
 @lru_cache
 def get_setting() -> DatabaseSetting:
-    data = load_db_config(".env.db")
+    data = load_env_config(".env.db")
     return DatabaseSetting(**data)

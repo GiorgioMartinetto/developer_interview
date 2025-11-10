@@ -7,6 +7,7 @@ from loguru import logger
 
 from src.api.v1.cetegory_endpoints import category_router
 from src.api.v1.product_endpoint import product_router
+from src.llm.llm_factory import setup_llm
 from src.log.logger import setup_logger
 from src.models.response_models import HealthResponse
 
@@ -14,6 +15,7 @@ from src.models.response_models import HealthResponse
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logger()
+    setup_llm()
     logger.success("🚀 Avvio dell'applicazione...")
     yield
 

@@ -55,7 +55,7 @@ def read_yaml_file(file_name: str) -> dict[str, Any]:
         ) from e
 
 
-def load_db_config(file_path: str = ".env") -> dict[str, Any]:
+def load_env_config(file_path: str = ".env") -> dict[str, Any]:
     env_pth = Path(file_path)
     if not env_pth.exists():
         raise FileNotFoundError(f"File - {file_path} - not found ")
