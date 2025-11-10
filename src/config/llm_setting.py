@@ -13,7 +13,7 @@ class LLMSetting(BaseModel):
         "openai",
         "azure",
         "anthropic",
-        "aws"
+        "aws",
     ]
     model: str
     temperature: float

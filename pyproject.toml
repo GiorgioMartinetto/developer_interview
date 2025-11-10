@@ -23,6 +23,7 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "thefuzz>=0.22.1",
     "uvicorn>=0.15.0",
+    "langchain-aws>=1.0.0",
 ]
 
 
