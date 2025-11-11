@@ -13,11 +13,14 @@ import {
     List,
     ListItem,
     ListItemText,
-    Divider
+    Divider,
+    CircularProgress
 } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import api from '../axios/axios';
 
 interface Message {
     id: number;
@@ -37,6 +40,8 @@ const MyChatBot: React.FC = () => {
             timestamp: new Date()
         }
     ]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -46,52 +51,86 @@ const MyChatBot: React.FC = () => {
         setOpen(false);
     };
 
-    const handleSendMessage = () => {
-        if (message.trim() === '') return;
+    const handleSendMessage = async () => {
+        if (message.trim() === '' || isLoading) return;
 
         const userMessage: Message = {
             id: messages.length + 1,
-            text: message,
+            text: message.trim(),
             sender: 'user',
             timestamp: new Date()
         };
 
         setMessages(prev => [...prev, userMessage]);
+        const currentMessage = message;
         setMessage('');
+        setIsLoading(true);
+        setIsTyping(true);
 
-        // Simulate bot response
-        setTimeout(() => {
-            const botResponse = getBotResponse(message);
+        try {
+            const response = await api.post('/v1/chatbot/conversation', {
+                message: currentMessage
+            });
+
             const botMessage: Message = {
                 id: messages.length + 2,
-                text: botResponse,
+                text: response.data,
                 sender: 'bot',
                 timestamp: new Date()
             };
             setMessages(prev => [...prev, botMessage]);
-        }, 1000);
-    };
-
-    const getBotResponse = (userMessage: string): string => {
-        const lowerMessage = userMessage.toLowerCase();
-
-        if (lowerMessage.includes('ciao') || lowerMessage.includes('salve')) {
-            return 'Ciao! Sono felice di aiutarti. Cosa stai cercando?';
-        } else if (lowerMessage.includes('prodotti') || lowerMessage.includes('products')) {
-            return 'Abbiamo una vasta gamma di prodotti di alta qualità. Puoi visitare la pagina Prodotti per vedere tutte le nostre offerte!';
-        } else if (lowerMessage.includes('contatti') || lowerMessage.includes('contacts')) {
-            return 'Puoi trovarci nella pagina Contatti. Saremo felici di rispondere alle tue domande!';
-        } else if (lowerMessage.includes('ai') || lowerMessage.includes('intelligenza artificiale')) {
-            return 'Sì, utilizziamo l\'intelligenza artificiale per offrirti un\'esperienza di shopping personalizzata. Come posso assisterti?';
-        } else {
-            return 'Grazie per il tuo messaggio! Sono qui per aiutarti con qualsiasi domanda sui nostri prodotti o servizi.';
+        } catch (error) {
+            console.error('Error sending message:', error);
+            const errorMessage: Message = {
+                id: messages.length + 2,
+                text: 'Mi dispiace, si è verificato un errore. Riprova più tardi.',
+                sender: 'bot',
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+            setIsTyping(false);
         }
     };
+
+
 
     const handleKeyPress = (event: React.KeyboardEvent) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             handleSendMessage();
+        }
+    };
+
+    const handleCloseConversation = async () => {
+        try {
+            await api.post('/v1/chatbot/reset_conversation');
+            // Reset local chat state
+            setMessages([
+                {
+                    id: 1,
+                    text: 'Ciao! Sono il tuo assistente virtuale. Come posso aiutarti oggi?',
+                    sender: 'bot',
+                    timestamp: new Date()
+                }
+            ]);
+            setMessage('');
+            setIsLoading(false);
+            setIsTyping(false);
+        } catch (error) {
+            console.error('Error resetting conversation:', error);
+            // Still reset local state even if API call fails
+            setMessages([
+                {
+                    id: 1,
+                    text: 'Ciao! Sono il tuo assistente virtuale. Come posso aiutarti oggi?',
+                    sender: 'bot',
+                    timestamp: new Date()
+                }
+            ]);
+            setMessage('');
+            setIsLoading(false);
         }
     };
 
@@ -183,6 +222,74 @@ const MyChatBot: React.FC = () => {
                                     </Paper>
                                 </ListItem>
                             ))}
+                            {isTyping && (
+                                <ListItem
+                                    sx={{
+                                        justifyContent: 'flex-start',
+                                        padding: '4px 0'
+                                    }}
+                                >
+                                    <Paper
+                                        sx={{
+                                            padding: '8px 12px',
+                                            maxWidth: '70%',
+                                            backgroundColor: 'grey.100',
+                                            color: 'text.primary',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1
+                                        }}
+                                    >
+                                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                                            Assistente sta scrivendo
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                            <Box
+                                                sx={{
+                                                    width: 4,
+                                                    height: 4,
+                                                    borderRadius: '50%',
+                                                    backgroundColor: 'grey.500',
+                                                    animation: 'bounce 1.4s infinite ease-in-out',
+                                                    animationDelay: '0s',
+                                                    '@keyframes bounce': {
+                                                        '0%, 80%, 100%': { transform: 'scale(0)' },
+                                                        '40%': { transform: 'scale(1)' }
+                                                    }
+                                                }}
+                                            />
+                                            <Box
+                                                sx={{
+                                                    width: 4,
+                                                    height: 4,
+                                                    borderRadius: '50%',
+                                                    backgroundColor: 'grey.500',
+                                                    animation: 'bounce 1.4s infinite ease-in-out',
+                                                    animationDelay: '0.2s',
+                                                    '@keyframes bounce': {
+                                                        '0%, 80%, 100%': { transform: 'scale(0)' },
+                                                        '40%': { transform: 'scale(1)' }
+                                                    }
+                                                }}
+                                            />
+                                            <Box
+                                                sx={{
+                                                    width: 4,
+                                                    height: 4,
+                                                    borderRadius: '50%',
+                                                    backgroundColor: 'grey.500',
+                                                    animation: 'bounce 1.4s infinite ease-in-out',
+                                                    animationDelay: '0.4s',
+                                                    '@keyframes bounce': {
+                                                        '0%, 80%, 100%': { transform: 'scale(0)' },
+                                                        '40%': { transform: 'scale(1)' }
+                                                    }
+                                                }}
+                                            />
+                                        </Box>
+                                    </Paper>
+                                </ListItem>
+                            )}
                         </List>
                     </Box>
 
@@ -192,25 +299,41 @@ const MyChatBot: React.FC = () => {
                         borderTop: '1px solid',
                         borderColor: 'divider',
                         display: 'flex',
+                        flexDirection: 'column',
                         gap: 1
                     }}>
-                        <TextField
-                            fullWidth
-                            variant="outlined"
-                            placeholder="Scrivi un messaggio..."
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            size="small"
-                        />
+                        <Box sx={{
+                            display: 'flex',
+                            gap: 1
+                        }}>
+                            <TextField
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Scrivi un messaggio..."
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                size="small"
+                            />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleSendMessage}
+                                disabled={!message.trim() || isLoading}
+                                sx={{ minWidth: 'auto', padding: '8px' }}
+                            >
+                                {isLoading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+                            </Button>
+                        </Box>
                         <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleSendMessage}
-                            disabled={!message.trim()}
-                            sx={{ minWidth: 'auto', padding: '8px' }}
+                            variant="outlined"
+                            color="secondary"
+                            onClick={handleCloseConversation}
+                            startIcon={<ExitToAppIcon />}
+                            size="small"
+                            sx={{ alignSelf: 'flex-start' }}
                         >
-                            <SendIcon />
+                            Chiudi Conversazione
                         </Button>
                     </Box>
                 </DialogContent>

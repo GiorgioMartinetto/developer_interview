@@ -11,6 +11,9 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
+import api from '../axios/axios';
 
 interface Product {
   id: number;
@@ -22,8 +25,16 @@ interface Product {
   categories?: { id: number; name: string }[];
 }
 
-export default function MyCard({ product, image }: { product: Product, image: string }) {
+export default function MyCard({ product, image, onProductDeleted }: {
+  product: Product,
+  image: string,
+  onProductDeleted?: () => void
+}) {
   const [open, setOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [confirmationText, setConfirmationText] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -31,6 +42,45 @@ export default function MyCard({ product, image }: { product: Product, image: st
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+    setConfirmationText('');
+    setDeleteError('');
+  };
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+    setConfirmationText('');
+    setDeleteError('');
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (confirmationText !== product.name) {
+      setDeleteError('Il nome del prodotto non corrisponde. Riprova.');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await api.delete('/v1/product/delete_product/', {
+        data: { id: product.id }
+      });
+
+      if (response.data.status === 200) {
+        setDeleteDialogOpen(false);
+        setOpen(false);
+        onProductDeleted?.();
+      } else {
+        setDeleteError('Errore durante l\'eliminazione del prodotto.');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      setDeleteError('Errore durante l\'eliminazione del prodotto.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const categoryNames = product.categories?.map((cat) => cat.name).join(', ') || '';
@@ -127,8 +177,67 @@ export default function MyCard({ product, image }: { product: Product, image: st
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} variant="contained">
+          <Button
+            onClick={handleDeleteClick}
+            variant="contained"
+            color="error"
+            sx={{ mr: 'auto' }}
+          >
+            Delete
+          </Button>
+          <Button onClick={handleClose} variant="outlined">
             Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', color: 'error.main' }}>
+          Conferma Eliminazione
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" paragraph>
+            Sei sicuro di voler eliminare il prodotto <strong>"{product.name}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Questa azione non può essere annullata.
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            Per confermare, digita il nome del prodotto: <strong>{product.name}</strong>
+          </Typography>
+          <TextField
+            fullWidth
+            label="Nome del prodotto"
+            variant="outlined"
+            value={confirmationText}
+            onChange={(e) => setConfirmationText(e.target.value)}
+            error={!!deleteError}
+            helperText={deleteError}
+            sx={{ mt: 2 }}
+          />
+          {deleteError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteDialogClose} variant="outlined" disabled={isDeleting}>
+            Annulla
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            color="error"
+            disabled={isDeleting || confirmationText !== product.name}
+          >
+            {isDeleting ? 'Eliminando...' : 'Elimina'}
           </Button>
         </DialogActions>
       </Dialog>

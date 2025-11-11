@@ -10,7 +10,7 @@ from src.models.response_models import HTTPResponse
 
 category_router = APIRouter(
     prefix="/v1/category",
-    tags=["category"]
+    tags=["Category"]
 )
 
 

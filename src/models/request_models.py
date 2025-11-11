@@ -3,6 +3,8 @@ from typing import Literal
 from pydantic import BaseModel
 
 
+# Product-related request models
+# These models handle requests for creating, updating, deleting, retrieving single products, and filtering products
 class CreateProductRequest(BaseModel):
     name: str
     price: float
@@ -33,8 +35,17 @@ class GetFilteredProductsRequest(BaseModel):
         sort_by: tuple[Literal["price", "date"], Literal["asc", "desc"]] | None
 
 
+# Category-related request models
+# These models handle requests for creating and deleting categories
 class CreateCategoryRequest(BaseModel):
     name: str
 
 class DeleteCategoryRequest(BaseModel):
     id: int
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+

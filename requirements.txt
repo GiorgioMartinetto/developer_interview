@@ -1,26 +1,31 @@
+# Web Framework and ASGI Server
 fastapi>=0.68.0
 uvicorn>=0.15.0
 gunicorn
 
+# Data Validation and Utilities
 pydantic>=1.8.0
 loguru>=0.5.3
 dotenv
 
+# Database and ORM
 sqlalchemy>=2.0.44
 psycopg2-binary
 alembic
 
+# Configuration
 PyYAML
 
-# LLM dependencies
+# LLM and AI Dependencies
 langchain>=0.1.0
 langchain-core>=0.1.0
 langchain-groq>=0.1.0
 langchain-openai>=0.1.0
 langchain-anthropic>=0.1.0
-langchain-aws
+langchain-awsaq
 
-#Formatter
+# Code Formatting
 ruff
 
+# String Matching
 thefuzz

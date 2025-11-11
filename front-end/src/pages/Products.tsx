@@ -227,7 +227,12 @@ export default function Products() {
                                 }}>
                                     <AddProductCard onProductAdded={fetchProducts} />
                                     {products.map((product) => (
-                                        <MyCard key={product.id} product={product} image="/src/assets/prodotti.jpg" />
+                                        <MyCard
+                                            key={product.id}
+                                            product={product}
+                                            image="/src/assets/prodotti.jpg"
+                                            onProductDeleted={fetchProducts}
+                                        />
                                     ))}
                                 </Box>
 

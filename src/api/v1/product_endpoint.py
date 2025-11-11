@@ -20,7 +20,7 @@ from src.models.response_models import HTTPResponse
 
 product_router = APIRouter(
     prefix="/v1/product",
-    tags=["product"]
+    tags=["Product"],
 )
 
 

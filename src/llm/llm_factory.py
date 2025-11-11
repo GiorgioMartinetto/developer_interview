@@ -46,7 +46,7 @@ class LLMFactory:
     @classmethod
     def get_llm(cls):
         if cls._instance is None:
-            raise ValueError("LLM instance is not created yet. Call create_llm() first.")
+            cls.create_llm()
         return cls._instance
 
 def setup_llm():

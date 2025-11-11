@@ -11,3 +11,7 @@ class HTTPResponse(BaseModel):
     status: int
     message: str
     data: Any | None = None
+
+class ChatResponse(BaseModel):
+    response: str
+    context: dict[str, str] = None

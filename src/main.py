@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from src.api.v1.cetegory_endpoints import category_router
+from src.api.v1.chatbot_endpoints import chatbot_router
 from src.api.v1.product_endpoint import product_router
 from src.llm.llm_factory import setup_llm
 from src.log.logger import setup_logger
@@ -39,6 +40,7 @@ app.add_middleware(
 
 app.include_router(router=product_router)
 app.include_router(router=category_router)
+app.include_router(router=chatbot_router)
 
 @app.get("/health_check/",
          status_code=status.HTTP_200_OK,
