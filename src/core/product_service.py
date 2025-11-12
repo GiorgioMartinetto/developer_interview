@@ -56,9 +56,9 @@ def get_product_service(product: GetProductRequest) -> dict:
     except Exception as e:
         raise ValueError(str(e)) from e
 
-def get_products_list_service() -> dict:
+def get_products_list_service(page: int, page_size: int) -> dict:
     try:
-        products = get_products_list()
+        products = get_products_list(page=page, page_size=page_size)
         return {
             "message": "Products list retrieved successfully",
             "data": products
@@ -68,15 +68,33 @@ def get_products_list_service() -> dict:
 
 def get_filtered_products_service(product_filter: GetFilteredProductsRequest) -> dict:
     try:
-        products = get_filtered_products(product_filter=product_filter)
+        products, total_count = get_filtered_products(product_filter=product_filter)
+        total_pages = (total_count + product_filter.page_size - 1) // product_filter.page_size  # Ceiling division
+
         if not products:
             return {
                 "message": "No products found",
-                "data": []
+                "data": {
+                    "products": [],
+                    "pagination": {
+                        "current_page": product_filter.page,
+                        "page_size": product_filter.page_size,
+                        "total_count": total_count,
+                        "total_pages": total_pages
+                    }
+                }
             }
         return {
             "message": "Filtered products list retrieved successfully",
-            "data": products
+            "data": {
+                "products": products,
+                "pagination": {
+                    "current_page": product_filter.page,
+                    "page_size": product_filter.page_size,
+                    "total_count": total_count,
+                    "total_pages": total_pages
+                }
+            }
         }
     except Exception as e:
         raise ValueError(str(e)) from e

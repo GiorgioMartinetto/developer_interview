@@ -14,6 +14,7 @@ import {
     Paper,
     Divider,
     Slider,
+    Pagination,
 } from '@mui/material';
 import MyNavbar from "../components/MyNavbar.tsx";
 import MyCard from "../components/MyCard.tsx";
@@ -46,15 +47,21 @@ export default function Products() {
     const [priceRange, setPriceRange] = useState<number[]>([0, 2000]);
     const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'date_asc' | 'date_desc'>('date_desc');
 
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
+    const [totalCount, setTotalCount] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
     // Fetch categories on component mount
     useEffect(() => {
         fetchCategories();
     }, []);
 
-    // Fetch products when filters change
+    // Fetch products when filters or pagination change
     useEffect(() => {
         fetchProducts();
-    }, [searchText, selectedCategories, priceRange, sortBy]);
+    }, [searchText, selectedCategories, priceRange, sortBy, currentPage, pageSize]);
 
     const fetchCategories = async () => {
         try {
@@ -76,12 +83,16 @@ export default function Products() {
                 min_max_price_filter: priceRange[0] !== 0 || priceRange[1] !== 2000 ? priceRange : null,
                 sort_by: sortBy.includes('price')
                     ? ['price', sortBy.split('_')[1] as 'asc' | 'desc']
-                    : ['date', sortBy.split('_')[1] as 'asc' | 'desc']
+                    : ['date', sortBy.split('_')[1] as 'asc' | 'desc'],
+                page: currentPage,
+                page_size: pageSize
             };
 
             const response = await api.post('/v1/product/get_filtered_products/', filterRequest);
             if (response.data.status === 200 && response.data.data) {
-                setProducts(response.data.data);
+                setProducts(response.data.data.products || []);
+                setTotalCount(response.data.data.pagination?.total_count || 0);
+                setTotalPages(response.data.data.pagination?.total_pages || 0);
             }
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -95,6 +106,7 @@ export default function Products() {
         setSelectedCategories([]);
         setPriceRange([0, 2000]);
         setSortBy('date_desc');
+        setCurrentPage(1);
     };
 
     return (
@@ -192,6 +204,24 @@ export default function Products() {
                                 </Select>
                             </FormControl>
 
+                            {/* Page Size */}
+                            <FormControl fullWidth sx={{ mb: 3 }}>
+                                <InputLabel>Products per page</InputLabel>
+                                <Select
+                                    value={pageSize}
+                                    label="Products per page"
+                                    onChange={(e) => {
+                                        setPageSize(Number(e.target.value));
+                                        setCurrentPage(1); // Reset to first page when changing page size
+                                    }}
+                                >
+                                    <MenuItem value={5}>5</MenuItem>
+                                    <MenuItem value={10}>10</MenuItem>
+                                    <MenuItem value={20}>20</MenuItem>
+                                    <MenuItem value={50}>50</MenuItem>
+                                </Select>
+                            </FormControl>
+
                             {/* Clear Filters */}
                             <Button
                                 fullWidth
@@ -213,7 +243,7 @@ export default function Products() {
                         ) : (
                             <>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    {products.length} product{products.length !== 1 ? 's' : ''} found
+                                    {totalCount} product{totalCount !== 1 ? 's' : ''} found
                                 </Typography>
 
                                 <Box sx={{
@@ -235,6 +265,21 @@ export default function Products() {
                                         />
                                     ))}
                                 </Box>
+
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                                        <Pagination
+                                            count={totalPages}
+                                            page={currentPage}
+                                            onChange={(_event, page) => setCurrentPage(page)}
+                                            color="primary"
+                                            size="large"
+                                            showFirstButton
+                                            showLastButton
+                                        />
+                                    </Box>
+                                )}
 
                                 {products.length === 0 && !loading && (
                                     <Box sx={{ textAlign: 'center', py: 8 }}>

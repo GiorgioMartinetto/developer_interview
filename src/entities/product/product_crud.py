@@ -106,7 +106,7 @@ def get_product_by_id(product: GetProductRequest):
         logger.exception(f"Error getting product: {e}")
         raise RuntimeError("Failed to get product") from e
 
-def get_products_list() -> list[dict]:
+def get_products_list(page: int, page_size: int) -> list[dict]:
     try:
         products = db_session.query(Product).all()
 
@@ -115,7 +115,7 @@ def get_products_list() -> list[dict]:
         logger.exception(f"Error getting products list: {e}")
         raise RuntimeError("Failed to get products list") from e
 
-def get_filtered_products(product_filter: GetFilteredProductsRequest) -> list[dict]:
+def get_filtered_products(product_filter: GetFilteredProductsRequest) -> tuple[list[dict], int]:
     try:
         query = db_session.query(Product)
         if product_filter.category_filter:
@@ -159,6 +159,13 @@ def get_filtered_products(product_filter: GetFilteredProductsRequest) -> list[di
                 else:
                     query = query.order_by(Product.created_at.desc())
 
+        # Get total count before applying pagination
+        total_count = query.count()
+
+        # Apply pagination
+        offset = (product_filter.page - 1) * product_filter.page_size
+        query = query.offset(offset).limit(product_filter.page_size)
+
         results = query.all()
 
         if product_filter.text_filter:
@@ -169,7 +176,7 @@ def get_filtered_products(product_filter: GetFilteredProductsRequest) -> list[di
             )
             results = [r for r in results if fuzz.partial_ratio(product_filter.text_filter.lower(), r.name.lower()) > 60]
 
-        return _convert_products_to_dict(products=results)
+        return _convert_products_to_dict(products=results), total_count
 
     except Exception as e:
         logger.exception(f"Error getting filtered products: {e}")

@@ -33,6 +33,8 @@ class GetFilteredProductsRequest(BaseModel):
         category_filter: list[str] | None
         min_max_price_filter: tuple[float, float] | None
         sort_by: tuple[Literal["price", "date"], Literal["asc", "desc"]] | None
+        page: int = 1
+        page_size: int = 5
 
 
 # Category-related request models
@@ -46,6 +48,3 @@ class DeleteCategoryRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-
-
-

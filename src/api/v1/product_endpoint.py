@@ -94,9 +94,9 @@ def get_product(product: GetProductRequest):
 @product_router.get("/get_products_list/",
                     status_code=status.HTTP_200_OK,
                     description="Get a list of all products")
-def get_products_list() -> HTTPResponse:
+def get_products_list(page: int = 1, page_size: int = 5) -> HTTPResponse:
     try:
-        result = get_products_list_service()
+        result = get_products_list_service(page=page, page_size=page_size)
         return HTTPResponse(
             status=status.HTTP_200_OK,
             message=result.get("message"),
@@ -141,3 +141,21 @@ def get_number_of_product() -> HTTPResponse:
             status=status.HTTP_400_BAD_REQUEST,
             message=str(e)
         )
+
+@product_router.get("/get_number_of_products/",
+                    status_code=status.HTTP_200_OK,
+                    description="Get products by category")
+def get_number_of_products() -> HTTPResponse:
+    try:
+        result = get_number_of_product_service()
+        return HTTPResponse(
+            status=status.HTTP_200_OK,
+            message=result.get("message"),
+            data=result.get("data", None)
+        )
+    except ValueError as e:
+        return HTTPResponse(
+            status=status.HTTP_400_BAD_REQUEST,
+            message=str(e)
+        )
+

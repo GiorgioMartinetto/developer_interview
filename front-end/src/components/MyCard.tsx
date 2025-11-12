@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
@@ -13,6 +13,12 @@ import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Alert from '@mui/material/Alert';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Checkbox from '@mui/material/Checkbox';
+import ListItemText from '@mui/material/ListItemText';
 import api from '../axios/axios';
 
 interface Product {
@@ -35,6 +41,19 @@ export default function MyCard({ product, image, onProductDeleted }: {
   const [confirmationText, setConfirmationText] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Update dialog state
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [updateForm, setUpdateForm] = useState({
+    name: '',
+    price: '',
+    description: '',
+    categories: [] as string[],
+    tags: ''
+  });
+  const [availableCategories, setAvailableCategories] = useState<{ id: number; name: string }[]>([]);
+  const [updateError, setUpdateError] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -82,6 +101,84 @@ export default function MyCard({ product, image, onProductDeleted }: {
       setIsDeleting(false);
     }
   };
+
+  // Update dialog handlers
+  const handleUpdateClick = () => {
+    // Initialize form with current product data
+    setUpdateForm({
+      name: product.name,
+      price: product.price.toString(),
+      description: product.description,
+      categories: product.categories?.map(cat => cat.name) || [],
+      tags: product.tags?.join(', ') || ''
+    });
+    setUpdateDialogOpen(true);
+    setUpdateError('');
+  };
+
+  const handleUpdateDialogClose = () => {
+    setUpdateDialogOpen(false);
+    setUpdateForm({
+      name: '',
+      price: '',
+      description: '',
+      categories: [],
+      tags: ''
+    });
+    setUpdateError('');
+  };
+
+  const handleUpdateFormChange = (field: string, value: any) => {
+    setUpdateForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleUpdateConfirm = async () => {
+    setIsUpdating(true);
+    try {
+      const updateData = {
+        id: product.id,
+        name: updateForm.name.trim() || null,
+        price: updateForm.price && !isNaN(parseFloat(updateForm.price)) ? parseFloat(updateForm.price) : null,
+        description: updateForm.description.trim() || null,
+        categories_name: updateForm.categories.length > 0 ? updateForm.categories : null,
+        tags: updateForm.tags.trim() ? updateForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : null
+      };
+
+      const response = await api.put('/v1/product/update_product/', updateData);
+
+      if (response.data.status === 200) {
+        setUpdateDialogOpen(false);
+        setOpen(false);
+        onProductDeleted?.(); // Refresh the product list
+      } else {
+        setUpdateError('Errore durante l\'aggiornamento del prodotto.');
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      setUpdateError('Errore durante l\'aggiornamento del prodotto.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Fetch available categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/v1/category/get_categories_list/');
+        if (response.data.status === 200 && response.data.data) {
+          setAvailableCategories(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const categoryNames = product.categories?.map((cat) => cat.name).join(', ') || '';
 
@@ -178,6 +275,14 @@ export default function MyCard({ product, image, onProductDeleted }: {
         </DialogContent>
         <DialogActions>
           <Button
+            onClick={handleUpdateClick}
+            variant="contained"
+            color="primary"
+            sx={{ mr: 1 }}
+          >
+            Update
+          </Button>
+          <Button
             onClick={handleDeleteClick}
             variant="contained"
             color="error"
@@ -238,6 +343,94 @@ export default function MyCard({ product, image, onProductDeleted }: {
             disabled={isDeleting || confirmationText !== product.name}
           >
             {isDeleting ? 'Eliminando...' : 'Elimina'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Update Product Dialog */}
+      <Dialog
+        open={updateDialogOpen}
+        onClose={handleUpdateDialogClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          Aggiorna Prodotto
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Nome"
+              variant="outlined"
+              value={updateForm.name}
+              onChange={(e) => handleUpdateFormChange('name', e.target.value)}
+            />
+
+            <TextField
+              fullWidth
+              label="Prezzo"
+              variant="outlined"
+              type="number"
+              value={updateForm.price}
+              onChange={(e) => handleUpdateFormChange('price', e.target.value)}
+              inputProps={{ step: '0.01', min: '0' }}
+            />
+
+            <TextField
+              fullWidth
+              label="Descrizione"
+              variant="outlined"
+              multiline
+              rows={3}
+              value={updateForm.description}
+              onChange={(e) => handleUpdateFormChange('description', e.target.value)}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Categorie</InputLabel>
+              <Select
+                multiple
+                value={updateForm.categories}
+                onChange={(e) => handleUpdateFormChange('categories', e.target.value)}
+                renderValue={(selected) => (selected as string[]).join(', ')}
+              >
+                {availableCategories.map((category) => (
+                  <MenuItem key={category.id} value={category.name}>
+                    <Checkbox checked={updateForm.categories.indexOf(category.name) > -1} />
+                    <ListItemText primary={category.name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              label="Tags (separati da virgola)"
+              variant="outlined"
+              value={updateForm.tags}
+              onChange={(e) => handleUpdateFormChange('tags', e.target.value)}
+              helperText="Esempio: tag1, tag2, tag3"
+            />
+          </Box>
+
+          {updateError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {updateError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleUpdateDialogClose} variant="outlined" disabled={isUpdating}>
+            Annulla
+          </Button>
+          <Button
+            onClick={handleUpdateConfirm}
+            variant="contained"
+            color="primary"
+            disabled={isUpdating}
+          >
+            {isUpdating ? 'Aggiornando...' : 'Aggiorna'}
           </Button>
         </DialogActions>
       </Dialog>
