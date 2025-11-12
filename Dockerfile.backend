@@ -1,0 +1,40 @@
+# Use Python 3.13 slim image
+FROM python:3.13-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency files
+COPY pyproject.toml ./
+COPY uv.lock ./
+
+# Install uv package manager
+RUN pip install uv
+
+# Install Python dependencies
+RUN uv sync --frozen --no-install-project
+
+# Copy source code
+COPY src/ ./src/
+COPY config/ ./config/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+
+# Copy scripts
+COPY start.sh ./start.sh
+RUN chmod +x start.sh
+
+# Copy environment files
+COPY .env.db ./.env.db
+COPY .env ./.env
+
+# Expose port
+EXPOSE 8000
+
+# Run the application
+CMD ["./start.sh"]

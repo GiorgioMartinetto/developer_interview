@@ -25,7 +25,6 @@ class ChatbotService:
 
         result = self.chatbot_graph.graph.invoke(current_session_state)
 
-        logger.info(f"QUIII \n {result}")
 
         updated_session_state = result
 
