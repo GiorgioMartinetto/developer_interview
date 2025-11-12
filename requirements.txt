@@ -22,10 +22,16 @@ langchain-core>=0.1.0
 langchain-groq>=0.1.0
 langchain-openai>=0.1.0
 langchain-anthropic>=0.1.0
-langchain-awsaq
+langchain-aws
 
 # Code Formatting
 ruff
 
 # String Matching
 thefuzz
+
+#Librerie pytest
+pytest==9.0.1
+pytest-cov==7.0.0
+pytest-html==4.1.1
+pytest-mock==3.15.1
