@@ -10,7 +10,7 @@ from langchain_core.prompts import (
 from langgraph.graph import END, StateGraph
 from loguru import logger
 
-from src.entities.product.product_crud import get_all_products
+from src.entities.product.product_crud import get_products_list
 from src.llm.llm_factory import LLMFactory
 from src.models.chat_model import ChatState, MessageClassifier
 from src.utilis.sys_utilis import read_yaml_file
@@ -80,7 +80,7 @@ class ChatbotGraph:
 
         user_message = state["messages"][-1].content
 
-        products_info = get_all_products()
+        products_info = get_products_list()
 
         system_message = SystemMessagePromptTemplate.from_template(self.config["products_system_message"])
         human_message = HumanMessagePromptTemplate.from_template("{user_message}")

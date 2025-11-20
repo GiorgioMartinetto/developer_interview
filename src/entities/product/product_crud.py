@@ -182,13 +182,6 @@ def get_filtered_products(product_filter: GetFilteredProductsRequest) -> tuple[l
         logger.exception(f"Error getting filtered products: {e}")
         raise RuntimeError("Failed to get filtered products") from e
 
-def get_all_products():
-    try:
-        products = db_session.query(Product).all()
-        return _convert_products_to_dict(products=products)
-    except Exception as e:
-        logger.exception(f"Error getting all products: {e}")
-        raise RuntimeError("Failed to get all products") from e
 
 def _convert_products_to_dict(products: list[Product]) -> list[dict]:
     if not products:
